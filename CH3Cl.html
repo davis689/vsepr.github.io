@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Chloromethane (CH3Cl)</title>
+<script src="https://cdn.jsdelivr.net/npm/3dmol/build/3Dmol-min.js"></script>
+<style>
+  :root {
+    --bg: #0e1210;
+    --text: #e8eae6;
+    --muted: #9aa09b;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  .wrap {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+  }
+  #viewer {
+    flex: 1;
+    width: 100%;
+  }
+  .caption {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.8rem;
+    padding: 6px 0;
+    background: var(--bg);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="viewer"></div>
+  <div class="caption">Chloromethane (CH₃Cl) — drag to rotate, scroll to zoom</div>
+</div>
+
+<script>
+  // Idealized tetrahedral geometry: C-H ~1.09 Å, C-Cl ~1.78 Å
+  const xyz = `6
+Chloromethane
+C    0.0000   0.0000   0.0000
+Cl   1.0277   1.0277   1.0277
+H   -0.6297  -0.6297   0.6297
+H   -0.6297   0.6297  -0.6297
+H    0.6297  -0.6297  -0.6297`;
+
+  window.addEventListener("DOMContentLoaded", function () {
+    const viewer = $3Dmol.createViewer("viewer", { backgroundColor: "#0e1210" });
+    viewer.addModel(xyz, "xyz");
+
+    // Sticks for all bonds
+    viewer.setStyle({}, { stick: { radius: 0.08, colorscheme: "Jmol" } });
+
+    // Per-element sphere sizes — Cl noticeably larger than C, C larger than H
+    viewer.setStyle({ elem: "Cl" }, {
+      stick: { radius: 0.08, colorscheme: "Jmol" },
+      sphere: { scale: 0.55, colorscheme: "Jmol" }
+    });
+    viewer.setStyle({ elem: "C" }, {
+      stick: { radius: 0.08, colorscheme: "Jmol" },
+      sphere: { scale: 0.30, colorscheme: "Jmol" }
+    });
+    viewer.setStyle({ elem: "H" }, {
+      stick: { radius: 0.08, colorscheme: "Jmol" },
+      sphere: { scale: 0.20, colorscheme: "Jmol" }
+    });
+
+    viewer.zoomTo();
+    viewer.render();
+  });
+</script>
+</body>
+</html>
