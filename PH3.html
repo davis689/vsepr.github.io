@@ -1,1 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Chloromethane (CH3Cl)</title>
+<script src="https://cdn.jsdelivr.net/npm/3dmol/build/3Dmol-min.js"></script>
+<style>
+  :root {
+    --bg: #0e1210;
+    --text: #e8eae6;
+    --muted: #9aa09b;
+    --accent: #5a9873;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  .wrap {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+  }
+  #viewer {
+    flex: 1;
+    width: 100%;
+    position: relative;
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.9rem;
+    min-height: 40px;
+    border-top: 1px solid #2a2f2c;
+  }
+  #readout { color: var(--text); }
+  #readout.hint { color: var(--muted); }
+  button {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid #3a403c;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+  button:hover { background: #1d2220; }
+  .caption {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.75rem;
+    padding: 0 0 6px 0;
+    background: var(--bg);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="viewer"></div>
+  <div class="bar">
+    <span id="readout" class="hint">Click three atoms to measure the angle (the middle atom you click is the vertex).</span>
+    <button id="clearBtn">Clear</button>
+  </div>
+  <div class="caption">Chloromethane (CH₃Cl) — drag to rotate, scroll to zoom</div>
+</div>
 
+<script>
+  // Approximate experimental geometry: C-H 1.087 Å, C-Cl 1.785 Å,
+  // H-C-Cl ~108.6°, H-C-H ~110.4°
+  const xyz = `5
+Chloromethane
+C    0.0000   0.0000   0.0000
+Cl   0.0000   0.0000   1.7850
+H    1.0308   0.0000  -0.3449
+H   -0.5154   0.8927  -0.3449
+H   -0.5154  -0.8927  -0.3449`;
+
+  let viewer;
+  let picked = [];
+
+  function applyStyles() {
+    viewer.setStyle({}, { stick: { radius: 0.08, colorscheme: "Jmol" } });
+    viewer.setStyle({ elem: "Cl" }, {
+      stick: { radius: 0.08, colorscheme: "Jmol" },
+      sphere: { scale: 0.55, colorscheme: "Jmol" }
+    });
+    viewer.setStyle({ elem: "C" }, {
+      stick: { radius: 0.08, colorscheme: "Jmol" },
+      sphere: { scale: 0.30, colorscheme: "Jmol" }
+    });
+    viewer.setStyle({ elem: "H" }, {
+      stick: { radius: 0.08, colorscheme: "Jmol" },
+      sphere: { scale: 0.20, colorscheme: "Jmol" }
+    });
+  }
+
+  function setReadout(text, isHint) {
+    const el = document.getElementById("readout");
+    el.textContent = text;
+    el.className = isHint ? "hint" : "";
+  }
+
+  function clearMeasurement() {
+    picked = [];
+    viewer.removeAllLabels();
+    viewer.removeAllShapes();
+    setReadout("Click three atoms to measure the angle (the middle atom you click is the vertex).", true);
+    viewer.render();
+  }
+
+  function vec(a, b) { return { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z }; }
+  function dot(u, v) { return u.x * v.x + u.y * v.y + u.z * v.z; }
+  function norm(u) { return Math.sqrt(dot(u, u)); }
+
+  function onAtomClick(atom) {
+    if (picked.length === 3) clearMeasurement();
+    if (picked.length > 0 && picked[picked.length - 1].index === atom.index) return;
+    if (picked.some(function (p) { return p.index === atom.index; })) return;
+
+    picked.push(atom);
+
+    viewer.addSphere({
+      center: { x: atom.x, y: atom.y, z: atom.z },
+      radius: 0.45,
+      color: "yellow",
+      alpha: 0.35
+    });
+
+    if (picked.length >= 2) {
+      const p = picked[picked.length - 2];
+      viewer.addLine({
+        start: { x: p.x, y: p.y, z: p.z },
+        end: { x: atom.x, y: atom.y, z: atom.z },
+        color: "yellow",
+        dashed: true
+      });
+    }
+
+    if (picked.length === 1) {
+      setReadout("Selected " + atom.elem + ". Click the vertex atom next.", true);
+    } else if (picked.length === 2) {
+      setReadout("Selected " + picked[0].elem + "–" + picked[1].elem + ". Click the third atom.", true);
+    } else {
+      const a = picked[0], b = picked[1], c = picked[2];
+      const v1 = vec(a, b), v2 = vec(c, b);
+      const cosT = dot(v1, v2) / (norm(v1) * norm(v2));
+      const deg = Math.acos(Math.max(-1, Math.min(1, cosT))) * 180 / Math.PI;
+
+      // place label slightly off the vertex, along the bisector
+      const u1 = { x: v1.x / norm(v1), y: v1.y / norm(v1), z: v1.z / norm(v1) };
+      const u2 = { x: v2.x / norm(v2), y: v2.y / norm(v2), z: v2.z / norm(v2) };
+      const bis = { x: u1.x + u2.x, y: u1.y + u2.y, z: u1.z + u2.z };
+      const bl = norm(bis) || 1;
+      const pos = {
+        x: b.x + 0.8 * bis.x / bl,
+        y: b.y + 0.8 * bis.y / bl,
+        z: b.z + 0.8 * bis.z / bl
+      };
+
+      viewer.addLabel(deg.toFixed(1) + "°", {
+        position: pos,
+        backgroundColor: "black",
+        backgroundOpacity: 0.7,
+        fontColor: "yellow",
+        fontSize: 16
+      });
+
+      setReadout(a.elem + "–" + b.elem + "–" + c.elem + " angle = " + deg.toFixed(1) + "°", false);
+    }
+    viewer.render();
+  }
+
+  window.addEventListener("DOMContentLoaded", function () {
+    viewer = $3Dmol.createViewer("viewer", { backgroundColor: "#0e1210" });
+    viewer.addModel(xyz, "xyz");
+    applyStyles();
+    viewer.setClickable({}, true, onAtomClick);
+    viewer.zoomTo();
+    viewer.render();
+
+    document.getElementById("clearBtn").addEventListener("click", clearMeasurement);
+  });
+</script>
+</body>
+</html>
