@@ -92,7 +92,7 @@ H    0.6276  -0.6276  -0.6276`;
   let viewer;
   let picked = [];
   // label text size in px: larger on phones / touch screens
-  const LABEL_FONT = (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 600) ? 30 : 16;
+  const LABEL_FONT = (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 600) ? 16 : 16;
   
   function applyStyles() {
     viewer.setStyle({}, { stick: { radius: 0.08, colorscheme: "Jmol" } });
