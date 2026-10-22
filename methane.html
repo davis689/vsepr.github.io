@@ -116,46 +116,48 @@ H    0.6276  -0.6276  -0.6276`;
   function dot(u, v) { return u.x * v.x + u.y * v.y + u.z * v.z; }
   function norm(u) { return Math.sqrt(dot(u, u)); }
 
-  function onAtomClick(atom) {
-    if (picked.length === 3) clearMeasurement();
-    if (picked.length > 0 && picked[picked.length - 1].index === atom.index) return;
-    if (picked.some(function (p) { return p.index === atom.index; })) return;
+const HALO_SCALE = { H: 0.20, C: 0.30, Cl: 0.55 };  // keep in sync with applyStyles
+  const HINT = "Click two atoms for a bond length, or three atoms for an angle (the second atom you click is the vertex).";
 
-    picked.push(atom);
+  // Redraw halos, dashed lines, labels and readout from the current picked list
+  function redraw() {
+    viewer.removeAllLabels();
+    viewer.removeAllShapes();
 
-    // halo radius = the atom's drawn radius (vdW radius × display scale) + a margin
-    const vdw = ($3Dmol.vdwRadii && $3Dmol.vdwRadii[atom.elem]) || 1.7;
-    const scale = { H: 0.20, C: 0.30 }[atom.elem] || 0.30;
-    viewer.addSphere({
-      center: { x: atom.x, y: atom.y, z: atom.z },
-      radius: vdw * scale + 0.15,
-      color: "yellow",
-      alpha: 0.35
+    picked.forEach(function (atom, i) {
+      const vdw = ($3Dmol.vdwRadii && $3Dmol.vdwRadii[atom.elem]) || 1.7;
+      viewer.addSphere({
+        center: { x: atom.x, y: atom.y, z: atom.z },
+        radius: vdw * (HALO_SCALE[atom.elem] || 0.30) + 0.15,
+        color: "yellow",
+        alpha: 0.35
+      });
+      if (i > 0) {
+        const p = picked[i - 1];
+        viewer.addLine({
+          start: { x: p.x, y: p.y, z: p.z },
+          end: { x: atom.x, y: atom.y, z: atom.z },
+          color: "yellow",
+          dashed: true
+        });
+      }
     });
 
-    if (picked.length >= 2) {
-      const p = picked[picked.length - 2];
-      viewer.addLine({
-        start: { x: p.x, y: p.y, z: p.z },
-        end: { x: atom.x, y: atom.y, z: atom.z },
-        color: "yellow",
-        dashed: true
-      });
-    }
-
-    if (picked.length === 1) {
-      setReadout("Selected " + atom.elem + ". Click a second atom for a distance, then a third for an angle.", true);
+    if (picked.length === 0) {
+      setReadout(HINT, true);
+    } else if (picked.length === 1) {
+      setReadout("Selected " + picked[0].elem + ". Click a second atom for a distance, then a third for an angle. Click a selected atom again to deselect it.", true);
     } else if (picked.length === 2) {
       const a = picked[0], b = picked[1];
       const d = norm(vec(a, b));
-      viewer.addLabel((d * 100).toFixed(1) + " pm", {
+      viewer.addLabel((100 * d).toFixed(1) + " pm", {
         position: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, z: (a.z + b.z) / 2 },
         backgroundColor: "black",
         backgroundOpacity: 0.7,
         fontColor: "yellow",
         fontSize: 16
       });
-      setReadout(a.elem + "–" + b.elem + " distance = " + (d * 100).toFixed(1) + " pm  (click a third atom to measure the angle at the second atom)", false);
+      setReadout(a.elem + "–" + b.elem + " distance = " + (100 * d).toFixed(1) + " pm  (click a third atom to measure the angle at the second atom)", false);
     } else {
       const a = picked[0], b = picked[1], c = picked[2];
       const v1 = vec(a, b), v2 = vec(c, b);
@@ -167,26 +169,29 @@ H    0.6276  -0.6276  -0.6276`;
       const u2 = { x: v2.x / norm(v2), y: v2.y / norm(v2), z: v2.z / norm(v2) };
       const bis = { x: u1.x + u2.x, y: u1.y + u2.y, z: u1.z + u2.z };
       const bl = norm(bis) || 1;
-      const pos = {
-        x: b.x + 0.8 * bis.x / bl,
-        y: b.y + 0.8 * bis.y / bl,
-        z: b.z + 0.8 * bis.z / bl
-      };
-
-      viewer.removeAllLabels();
       viewer.addLabel(deg.toFixed(1) + "°", {
-        position: pos,
+        position: { x: b.x + 0.8 * bis.x / bl, y: b.y + 0.8 * bis.y / bl, z: b.z + 0.8 * bis.z / bl },
         backgroundColor: "black",
         backgroundOpacity: 0.7,
         fontColor: "yellow",
         fontSize: 16
       });
-
       setReadout(a.elem + "–" + b.elem + "–" + c.elem + " angle = " + deg.toFixed(1) + "°   (" +
-        a.elem + "–" + b.elem + " " + (norm(v1) * 100).toFixed(1) + " pm, " +
-        b.elem + "–" + c.elem + " " + (norm(v2) * 100).toFixed(1) + " pm)", false);
+        a.elem + "–" + b.elem + " " + (100 * norm(v1)).toFixed(1) + " pm, " +
+        b.elem + "–" + c.elem + " " + (100 * norm(v2)).toFixed(1) + " pm)", false);
     }
     viewer.render();
+  }
+
+  function onAtomClick(atom) {
+    const i = picked.findIndex(function (p) { return p.index === atom.index; });
+    if (i !== -1) {
+      picked.splice(i, 1);                  // clicked a selected atom: deselect it
+    } else {
+      if (picked.length === 3) picked = []; // a fourth click starts a fresh measurement
+      picked.push(atom);
+    }
+    redraw();
   }
 
   window.addEventListener("DOMContentLoaded", function () {
