@@ -61,6 +61,11 @@
     padding: 0 0 6px 0;
     background: var(--bg);
   }
+  @media (max-width: 600px) {
+  .bar { font-size: 1.05rem; }
+  button { font-size: 0.95rem; padding: 8px 14px; }
+  .caption { font-size: 0.85rem; }
+  }
 </style>
 </head>
 <body>
@@ -84,7 +89,9 @@ H   -0.4688  -0.8120  -0.3810`;
 
   let viewer;
   let picked = [];
-
+  // label text size in px: larger on phones / touch screens
+  const LABEL_FONT = (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 600) ? 30 : 16;
+  
   function applyStyles() {
     viewer.setStyle({}, { stick: { radius: 0.08, colorscheme: "Jmol" } });
     viewer.setStyle({ elem: "N" }, {
@@ -154,7 +161,8 @@ H   -0.4688  -0.8120  -0.3810`;
         backgroundColor: "black",
         backgroundOpacity: 0.7,
         fontColor: "yellow",
-        fontSize: 16
+        fontSize: LABEL_FONT
+        bold: true
       });
       setReadout(a.elem + "–" + b.elem + " distance = " + (100 * d).toFixed(1) + " pm  (click a third atom to measure the angle at the second atom)", false);
     } else {
@@ -173,7 +181,8 @@ H   -0.4688  -0.8120  -0.3810`;
         backgroundColor: "black",
         backgroundOpacity: 0.7,
         fontColor: "yellow",
-        fontSize: 16
+        fontSize: LABEL_FONT
+        bold: true
       });
       setReadout(a.elem + "–" + b.elem + "–" + c.elem + " angle = " + deg.toFixed(1) + "°   (" +
         a.elem + "–" + b.elem + " " + (100 * norm(v1)).toFixed(1) + " pm, " +
