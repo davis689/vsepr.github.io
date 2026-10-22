@@ -124,8 +124,12 @@ H    0.6276  -0.6276  -0.6276`;
     picked.push(atom);
 
     viewer.addSphere({
+      // halo radius = the atom's drawn radius (vdW radius × display scale) + a margin
+    const vdw = ($3Dmol.vdwRadii && $3Dmol.vdwRadii[atom.elem]) || 1.7;
+    const scale = { H: 0.20, C: 0.30 }[atom.elem] || 0.30;
+    viewer.addSphere({
       center: { x: atom.x, y: atom.y, z: atom.z },
-      radius: 0.45,
+      radius: vdw * scale + 0.15,
       color: "yellow",
       alpha: 0.35
     });
