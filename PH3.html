@@ -148,7 +148,7 @@ H   -0.5972  -1.0343  -0.7682`;
     } else if (picked.length === 2) {
       const a = picked[0], b = picked[1];
       const d = norm(vec(a, b));
-      viewer.addLabel(d.toFixed(3) + " Å", {
+      viewer.addLabel((d * 100).toFixed(1) + " Å", {
         position: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, z: (a.z + b.z) / 2 },
         backgroundColor: "black",
         backgroundOpacity: 0.7,
