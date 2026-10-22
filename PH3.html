@@ -144,7 +144,7 @@ H   -59.72  -103.43  -76.82`;
     } else if (picked.length === 2) {
       const a = picked[0], b = picked[1];
       const d = norm(vec(a, b));
-      viewer.addLabel(d.toFixed(3) + " Å", {
+      viewer.addLabel(d.toFixed(3) + " pm", {
         position: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, z: (a.z + b.z) / 2 },
         backgroundColor: "black",
         backgroundOpacity: 0.7,
@@ -179,8 +179,8 @@ H   -59.72  -103.43  -76.82`;
       });
 
       setReadout(a.elem + "–" + b.elem + "–" + c.elem + " angle = " + deg.toFixed(1) + "°   (" +
-        a.elem + "–" + b.elem + " " + norm(v1).toFixed(3) + " Å, " +
-        b.elem + "–" + c.elem + " " + norm(v2).toFixed(3) + " Å)", false);
+        a.elem + "–" + b.elem + " " + norm(v1).toFixed(3) + " pm, " +
+        b.elem + "–" + c.elem + " " + norm(v2).toFixed(3) + " pm)", false);
     }
     viewer.render();
   }
