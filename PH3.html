@@ -78,9 +78,9 @@
   const xyz = `4
 Phosphine
 P    0.0000   0.0000   0.0000
-H    119.43   0.0000  -76.82
-H   -59.72   103.43  -76.82
-H   -59.72  -103.43  -76.82`;
+H    1.1943   0.0000  -.7682
+H   -.5972   1.0343  -.7682
+H   -.5972  -1.0343  -.7682';
 
   let viewer;
   let picked = [];
@@ -179,8 +179,8 @@ H   -59.72  -103.43  -76.82`;
       });
 
       setReadout(a.elem + "–" + b.elem + "–" + c.elem + " angle = " + deg.toFixed(1) + "°   (" +
-        a.elem + "–" + b.elem + " " + norm(v1).toFixed(3) + " pm, " +
-        b.elem + "–" + c.elem + " " + norm(v2).toFixed(3) + " pm)", false);
+        a.elem + "–" + b.elem + " " + (norm(v1)*100).toFixed(3) + " pm, " +
+        b.elem + "–" + c.elem + " " + (norm(v2)*100).toFixed(3) + " pm)", false);
     }
     viewer.render();
   }
