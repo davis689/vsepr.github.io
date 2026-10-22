@@ -84,7 +84,8 @@ H   -0.7567    0.5859   0.0000`;
 
   let viewer;
   let picked = [];
-
+  //label text size in px: larger on phones / touch screens
+  const LABEL_FONT = (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 600) ? 30 : 16;
   function applyStyles() {
     viewer.setStyle({}, { stick: { radius: 0.08, colorscheme: "Jmol" } });
     viewer.setStyle({ elem: "O" }, {
@@ -154,7 +155,8 @@ H   -0.7567    0.5859   0.0000`;
         backgroundColor: "black",
         backgroundOpacity: 0.7,
         fontColor: "yellow",
-        fontSize: 16
+        fontSize: LABEL_FONT,
+        bold: true
       });
       setReadout(a.elem + "–" + b.elem + " distance = " + (100 * d).toFixed(1) + " pm  (click a third atom to measure the angle at the second atom)", false);
     } else {
@@ -173,7 +175,8 @@ H   -0.7567    0.5859   0.0000`;
         backgroundColor: "black",
         backgroundOpacity: 0.7,
         fontColor: "yellow",
-        fontSize: 16
+        fontSize: LABEL_FONT,
+        bold: true
       });
       setReadout(a.elem + "–" + b.elem + "–" + c.elem + " angle = " + deg.toFixed(1) + "°   (" +
         a.elem + "–" + b.elem + " " + (100 * norm(v1)).toFixed(1) + " pm, " +
