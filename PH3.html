@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Chloromethane (CH3Cl)</title>
+<title>Phosphine (PH3)</title>
 <script src="https://cdn.jsdelivr.net/npm/3dmol/build/3Dmol-min.js"></script>
 <style>
   :root {
@@ -67,35 +67,29 @@
 <div class="wrap">
   <div id="viewer"></div>
   <div class="bar">
-    <span id="readout" class="hint">Click three atoms to measure the angle (the middle atom you click is the vertex).</span>
+    <span id="readout" class="hint">Click two atoms for a bond length, or three atoms for an angle (the second atom you click is the vertex).</span>
     <button id="clearBtn">Clear</button>
   </div>
-  <div class="caption">Chloromethane (CH₃Cl) — drag to rotate, scroll to zoom</div>
+  <div class="caption">Phosphine (PH₃) — drag to rotate, scroll to zoom</div>
 </div>
 
 <script>
-  // Approximate experimental geometry: C-H 1.087 Å, C-Cl 1.785 Å,
-  // H-C-Cl ~108.6°, H-C-H ~110.4°
-  const xyz = `5
-Phospine
-P           0.000       0.000       -0.070      
-H           0.600       -1.039      0.680       
-H           0.600       1.039       0.680       
-H           -1.200      0.000       0.680       
-;
+  // Approximate experimental geometry: P-H 1.420 Å, H-P-H ~93.5° (trigonal pyramidal)
+  const xyz = `4
+Phosphine
+P    0.0000   0.0000   0.0000
+H    1.1943   0.0000  -0.7682
+H   -0.5972   1.0343  -0.7682
+H   -0.5972  -1.0343  -0.7682`;
 
   let viewer;
   let picked = [];
 
   function applyStyles() {
     viewer.setStyle({}, { stick: { radius: 0.08, colorscheme: "Jmol" } });
-    viewer.setStyle({ elem: "Cl" }, {
+    viewer.setStyle({ elem: "P" }, {
       stick: { radius: 0.08, colorscheme: "Jmol" },
-      sphere: { scale: 0.55, colorscheme: "Jmol" }
-    });
-    viewer.setStyle({ elem: "C" }, {
-      stick: { radius: 0.08, colorscheme: "Jmol" },
-      sphere: { scale: 0.30, colorscheme: "Jmol" }
+      sphere: { scale: 0.50, colorscheme: "Jmol" }
     });
     viewer.setStyle({ elem: "H" }, {
       stick: { radius: 0.08, colorscheme: "Jmol" },
@@ -113,7 +107,7 @@ H           -1.200      0.000       0.680
     picked = [];
     viewer.removeAllLabels();
     viewer.removeAllShapes();
-    setReadout("Click three atoms to measure the angle (the middle atom you click is the vertex).", true);
+    setReadout("Click two atoms for a bond length, or three atoms for an angle (the second atom you click is the vertex).", true);
     viewer.render();
   }
 
@@ -146,9 +140,18 @@ H           -1.200      0.000       0.680
     }
 
     if (picked.length === 1) {
-      setReadout("Selected " + atom.elem + ". Click the vertex atom next.", true);
+      setReadout("Selected " + atom.elem + ". Click a second atom for a distance, then a third for an angle.", true);
     } else if (picked.length === 2) {
-      setReadout("Selected " + picked[0].elem + "–" + picked[1].elem + ". Click the third atom.", true);
+      const a = picked[0], b = picked[1];
+      const d = norm(vec(a, b));
+      viewer.addLabel(d.toFixed(3) + " Å", {
+        position: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, z: (a.z + b.z) / 2 },
+        backgroundColor: "black",
+        backgroundOpacity: 0.7,
+        fontColor: "yellow",
+        fontSize: 16
+      });
+      setReadout(a.elem + "–" + b.elem + " distance = " + d.toFixed(3) + " Å  (click a third atom to measure the angle at the second atom)", false);
     } else {
       const a = picked[0], b = picked[1], c = picked[2];
       const v1 = vec(a, b), v2 = vec(c, b);
@@ -166,6 +169,7 @@ H           -1.200      0.000       0.680
         z: b.z + 0.8 * bis.z / bl
       };
 
+      viewer.removeAllLabels();
       viewer.addLabel(deg.toFixed(1) + "°", {
         position: pos,
         backgroundColor: "black",
@@ -174,7 +178,9 @@ H           -1.200      0.000       0.680
         fontSize: 16
       });
 
-      setReadout(a.elem + "–" + b.elem + "–" + c.elem + " angle = " + deg.toFixed(1) + "°", false);
+      setReadout(a.elem + "–" + b.elem + "–" + c.elem + " angle = " + deg.toFixed(1) + "°   (" +
+        a.elem + "–" + b.elem + " " + norm(v1).toFixed(3) + " Å, " +
+        b.elem + "–" + c.elem + " " + norm(v2).toFixed(3) + " Å)", false);
     }
     viewer.render();
   }
