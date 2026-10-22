@@ -151,7 +151,7 @@ H   -0.4688  -0.8120  -0.3810`;
         fontColor: "yellow",
         fontSize: 16
       });
-      setReadout(a.elem + "–" + b.elem + " distance = " + d.toFixed(3) + " Å  (click a third atom to measure the angle at the second atom)", false);
+      setReadout(a.elem + "–" + b.elem + " distance = " + (100*d).toFixed(1) + " pm  (click a third atom to measure the angle at the second atom)", false);
     } else {
       const a = picked[0], b = picked[1], c = picked[2];
       const v1 = vec(a, b), v2 = vec(c, b);
@@ -179,8 +179,8 @@ H   -0.4688  -0.8120  -0.3810`;
       });
 
       setReadout(a.elem + "–" + b.elem + "–" + c.elem + " angle = " + deg.toFixed(1) + "°   (" +
-        a.elem + "–" + b.elem + " " + norm(v1).toFixed(3) + " Å, " +
-        b.elem + "–" + c.elem + " " + norm(v2).toFixed(3) + " Å)", false);
+        a.elem + "–" + b.elem + " " + (100*norm(v1)).toFixed(1) + " pm, " +
+        b.elem + "–" + c.elem + " " + (100*norm(v2)).toFixed(1) + " pm)", false);
     }
     viewer.render();
   }
