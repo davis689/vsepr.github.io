@@ -128,7 +128,7 @@ H     0.9422   -1.6097    0.0000
   function dot(u, v) { return u.x * v.x + u.y * v.y + u.z * v.z; }
   function norm(u) { return Math.sqrt(dot(u, u)); }
 
-  const HALO_SCALE = { N: 0.32, O: 0.32 };  // keep in sync with applyStyles
+  const HALO_SCALE = { N: 0.32, O: 0.32 , H: 0.20};  // keep in sync with applyStyles
   const HINT = "Click two atoms for a bond length, or three atoms for an angle (the second atom you click is the vertex).";
 
   // Redraw halos, dashed lines, labels and readout from the current picked list
