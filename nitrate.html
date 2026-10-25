@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nitrate (NO3-)</title>
+<script src="https://cdn.jsdelivr.net/npm/3dmol/build/3Dmol-min.js"></script>
+<style>
+  :root {
+    --bg: #0e1210;
+    --text: #e8eae6;
+    --muted: #9aa09b;
+    --accent: #5a9873;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  .wrap {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    width: 100vw;
+  }
+  #viewer {
+    flex: 1;
+    width: 100%;
+    position: relative;
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.9rem;
+    min-height: 40px;
+    border-top: 1px solid #2a2f2c;
+  }
+  #readout { color: var(--text); }
+  #readout.hint { color: var(--muted); }
+  button {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid #3a403c;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+  button:hover { background: #1d2220; }
+  .caption {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.75rem;
+    padding: 0 0 6px 0;
+    background: var(--bg);
+  }
+  @media (max-width: 600px) {
+    .bar { font-size: 1.05rem; }
+    button { font-size: 0.95rem; padding: 8px 14px; }
+    .caption { font-size: 0.85rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="viewer"></div>
+  <div class="bar">
+    <span id="readout" class="hint">Click two atoms for a bond length, or three atoms for an angle (the second atom you click is the vertex).</span>
+    <button id="clearBtn">Clear</button>
+  </div>
+  <div class="caption">Nitrate (NO3-) — drag to rotate, scroll to zoom</div>
+</div>
+
+<script>
+  // Planar: all N–O 124 pm, all O–N–O 120.0°. Coordinates are in angstroms.
+  const xyz = `4
+4
+Nitrate
+N     0.0000    0.0000    0.0000
+O     0.0000    1.2400    0.0000
+O    -1.0739   -0.6200    0.0000
+O     1.0739   -0.6200    0.0000`;
+
+  let viewer;
+  let picked = [];
+  // label text size in px: larger on phones / touch screens
+  const LABEL_FONT = (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 600) ? 24 : 16;
+
+  function applyStyles() {
+    viewer.setStyle({}, { stick: { radius: 0.08, colorscheme: "Jmol" } });
+    viewer.setStyle({ elem: "N" }, {
+      stick: { radius: 0.08, colorscheme: "Jmol" },
+      sphere: { scale: 0.32, colorscheme: "Jmol" }
+    });
+    viewer.setStyle({ elem: "O" }, {
+      stick: { radius: 0.08, colorscheme: "Jmol" },
+      sphere: { scale: 0.32, colorscheme: "Jmol" }
+    });
+  }
+
+  function setReadout(text, isHint) {
+    const el = document.getElementById("readout");
+    el.textContent = text;
+    el.className = isHint ? "hint" : "";
+  }
+
+  function clearMeasurement() {
+    picked = [];
+    viewer.removeAllLabels();
+    viewer.removeAllShapes();
+    setReadout("Click two atoms for a bond length, or three atoms for an angle (the second atom you click is the vertex).", true);
+    viewer.render();
+  }
+
+  function vec(a, b) { return { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z }; }
+  function dot(u, v) { return u.x * v.x + u.y * v.y + u.z * v.z; }
+  function norm(u) { return Math.sqrt(dot(u, u)); }
+
+  const HALO_SCALE = { N: 0.32, O: 0.32 };  // keep in sync with applyStyles
+  const HINT = "Click two atoms for a bond length, or three atoms for an angle (the second atom you click is the vertex).";
+
+  // Redraw halos, dashed lines, labels and readout from the current picked list
+  function redraw() {
+    viewer.removeAllLabels();
+    viewer.removeAllShapes();
+
+    picked.forEach(function (atom, i) {
+      const vdw = ($3Dmol.vdwRadii && $3Dmol.vdwRadii[atom.elem]) || 1.7;
+      viewer.addSphere({
+        center: { x: atom.x, y: atom.y, z: atom.z },
+        radius: vdw * (HALO_SCALE[atom.elem] || 0.30) + 0.15,
+        color: "yellow",
+        alpha: 0.35
+      });
+      if (i > 0) {
+        const p = picked[i - 1];
+        viewer.addLine({
+          start: { x: p.x, y: p.y, z: p.z },
+          end: { x: atom.x, y: atom.y, z: atom.z },
+          color: "yellow",
+          dashed: true
+        });
+      }
+    });
+
+    if (picked.length === 0) {
+      setReadout(HINT, true);
+    } else if (picked.length === 1) {
+      setReadout("Selected " + picked[0].elem + ". Click a second atom for a distance, then a third for an angle. Click a selected atom again to deselect it.", true);
+    } else if (picked.length === 2) {
+      const a = picked[0], b = picked[1];
+      const d = norm(vec(a, b));
+      viewer.addLabel((100 * d).toFixed(1) + " pm", {
+        position: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, z: (a.z + b.z) / 2 },
+        backgroundColor: "black",
+        backgroundOpacity: 0.7,
+        fontColor: "yellow",
+        fontSize: LABEL_FONT,
+        bold: true
+      });
+      setReadout(a.elem + "–" + b.elem + " distance = " + (100 * d).toFixed(1) + " pm  (click a third atom to measure the angle at the second atom)", false);
+    } else {
+      const a = picked[0], b = picked[1], c = picked[2];
+      const v1 = vec(a, b), v2 = vec(c, b);
+      const cosT = dot(v1, v2) / (norm(v1) * norm(v2));
+      const deg = Math.acos(Math.max(-1, Math.min(1, cosT))) * 180 / Math.PI;
+
+      // place label slightly off the vertex, along the bisector
+      const u1 = { x: v1.x / norm(v1), y: v1.y / norm(v1), z: v1.z / norm(v1) };
+      const u2 = { x: v2.x / norm(v2), y: v2.y / norm(v2), z: v2.z / norm(v2) };
+      const bis = { x: u1.x + u2.x, y: u1.y + u2.y, z: u1.z + u2.z };
+      // for a linear arrangement the bisector vanishes, so offset the label perpendicular to the bond
+      let dir = bis, bl = norm(bis);
+      if (bl < 1e-6) {
+        dir = { x: -u1.y, y: u1.x, z: 0 };
+        bl = norm(dir);
+        if (bl < 1e-6) { dir = { x: 1, y: 0, z: 0 }; bl = 1; }
+      }
+      viewer.addLabel(deg.toFixed(1) + "°", {
+        position: { x: b.x + 0.8 * dir.x / bl, y: b.y + 0.8 * dir.y / bl, z: b.z + 0.8 * dir.z / bl },
+        backgroundColor: "black",
+        backgroundOpacity: 0.7,
+        fontColor: "yellow",
+        fontSize: LABEL_FONT,
+        bold: true
+      });
+      setReadout(a.elem + "–" + b.elem + "–" + c.elem + " angle = " + deg.toFixed(1) + "°   (" +
+        a.elem + "–" + b.elem + " " + (100 * norm(v1)).toFixed(1) + " pm, " +
+        b.elem + "–" + c.elem + " " + (100 * norm(v2)).toFixed(1) + " pm)", false);
+    }
+    viewer.render();
+  }
+
+  function onAtomClick(atom) {
+    const i = picked.findIndex(function (p) { return p.index === atom.index; });
+    if (i !== -1) {
+      picked.splice(i, 1);                 // clicked a selected atom: deselect it
+    } else {
+      if (picked.length === 3) picked = []; // a fourth click starts a fresh measurement
+      picked.push(atom);
+    }
+    redraw();
+  }
+
+  window.addEventListener("DOMContentLoaded", function () {
+    viewer = $3Dmol.createViewer("viewer", { backgroundColor: "#0e1210" });
+    viewer.addModel(xyz, "xyz");
+    applyStyles();
+    viewer.setClickable({}, true, onAtomClick);
+    viewer.zoomTo();
+    viewer.render();
+
+    document.getElementById("clearBtn").addEventListener("click", clearMeasurement);
+  });
+</script>
+</body>
+</html>
