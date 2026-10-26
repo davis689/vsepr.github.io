@@ -81,18 +81,21 @@
 </div>
 
 <script>
-  // Optimized at B3LYP/6-311+G(d,p) (RI-J density fitting); coordinates in angstroms. Atom order follows the SDF below.
-  const SDF_STRUCTURE = `Acetate ion
+  // Optimized at B3LYP/6-311+G(d,p) (RI-J density fitting); coordinates in angstroms. Atom order follows the SDF blocks below.
+  // Bond displays that the R key cycles through (all share the same atoms and coordinates).
+  // Molecules without equivalent resonance structures have just one entry and R does nothing.
+  const SDF_STATES = [
+    `Acetate ion
      RDKit          3D
 
   7  6  0  0  0  0  0  0  0  0999 V2000
-   -0.6573   -0.0885   -0.0090 C   0  0  0  0  0  0  0  0  0  0  0  0
-    0.8965    0.0978   -0.0036 C   0  0  0  0  0  0  0  0  0  0  0  0
-    1.5803   -0.9549   -0.0170 O   0  0  0  0  0  0  0  0  0  0  0  0
-    1.2861    1.2915    0.0271 O   0  0  0  0  0  0  0  0  0  0  0  0
-   -1.0583    0.2331    0.9596 H   0  0  0  0  0  0  0  0  0  0  0  0
-   -0.9390   -1.1309   -0.1826 H   0  0  0  0  0  0  0  0  0  0  0  0
-   -1.1083    0.5520   -0.7744 H   0  0  0  0  0  0  0  0  0  0  0  0
+   -0.6580   -0.0839   -0.0180 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.8963    0.1006   -0.0071 C   0  0  0  0  0  0  0  0  0  0  0  0
+    1.5519   -0.8584    0.4701 O   0  0  0  0  0  0  0  0  0  0  0  0
+    1.3138    1.1993   -0.4494 O   0  0  0  0  0  0  0  0  0  0  0  0
+   -1.0590    0.2904    0.9323 H   0  0  0  0  0  0  0  0  0  0  0  0
+   -0.9279   -1.1407   -0.1037 H   0  0  0  0  0  0  0  0  0  0  0  0
+   -1.1170    0.4924   -0.8269 H   0  0  0  0  0  0  0  0  0  0  0  0
   1  2  1  0
   2  3  2  0
   2  4  1  0
@@ -101,38 +104,56 @@
   1  7  1  0
 M  CHG  1   4  -1
 M  END
-`;
-
-  // Same atoms with the delocalized bonds drawn as single sticks (a dashed overlay is added in code).
-  // Leave as null, with DELOCALIZED = [], for molecules without equivalent resonance structures.
-  const SDF_DELOCALIZED = `Acetate ion
+`,
+    `Acetate ion
      RDKit          3D
 
   7  6  0  0  0  0  0  0  0  0999 V2000
-   -0.6573   -0.0885   -0.0090 C   0  0  0  0  0  0  0  0  0  0  0  0
-    0.8965    0.0978   -0.0036 C   0  0  0  0  0  0  0  0  0  0  0  0
-    1.5803   -0.9549   -0.0170 O   0  0  0  0  0  0  0  0  0  0  0  0
-    1.2861    1.2915    0.0271 O   0  0  0  0  0  0  0  0  0  0  0  0
-   -1.0583    0.2331    0.9596 H   0  0  0  0  0  0  0  0  0  0  0  0
-   -0.9390   -1.1309   -0.1826 H   0  0  0  0  0  0  0  0  0  0  0  0
-   -1.1083    0.5520   -0.7744 H   0  0  0  0  0  0  0  0  0  0  0  0
+   -0.6580   -0.0839   -0.0180 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.8963    0.1006   -0.0071 C   0  0  0  0  0  0  0  0  0  0  0  0
+    1.5519   -0.8584    0.4701 O   0  0  0  0  0  0  0  0  0  0  0  0
+    1.3138    1.1993   -0.4494 O   0  0  0  0  0  0  0  0  0  0  0  0
+   -1.0590    0.2904    0.9323 H   0  0  0  0  0  0  0  0  0  0  0  0
+   -0.9279   -1.1407   -0.1037 H   0  0  0  0  0  0  0  0  0  0  0  0
+   -1.1170    0.4924   -0.8269 H   0  0  0  0  0  0  0  0  0  0  0  0
+  1  2  1  0
+  2  3  1  0
+  2  4  2  0
+  1  5  1  0
+  1  6  1  0
+  1  7  1  0
+M  CHG  1   3  -1
+M  END
+`,
+    `Acetate ion
+     RDKit          3D
+
+  7  6  0  0  0  0  0  0  0  0999 V2000
+   -0.6580   -0.0839   -0.0180 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.8963    0.1006   -0.0071 C   0  0  0  0  0  0  0  0  0  0  0  0
+    1.5519   -0.8584    0.4701 O   0  0  0  0  0  0  0  0  0  0  0  0
+    1.3138    1.1993   -0.4494 O   0  0  0  0  0  1  0  0  0  0  0  0
+   -1.0590    0.2904    0.9323 H   0  0  0  0  0  0  0  0  0  0  0  0
+   -0.9279   -1.1407   -0.1037 H   0  0  0  0  0  0  0  0  0  0  0  0
+   -1.1170    0.4924   -0.8269 H   0  0  0  0  0  0  0  0  0  0  0  0
   1  2  1  0
   2  3  1  0
   2  4  1  0
   1  5  1  0
   1  6  1  0
   1  7  1  0
-M  CHG  1   4  -1
 M  END
-`;
+`
+  ];
+  const DELOC_STATE = 2;   // index of the delocalized (half-bond) display, or -1
 
-  // [atom, atom, reference atom in the molecular plane] using 0-based atom numbers from the SDF above
+  // [atom, atom, reference atom in the molecular plane], 0-based atom numbers from the SDF, for the dashed half-bonds
   const DELOCALIZED = [[1, 2, 3], [1, 3, 2]];
-  const DELOC_KEY = "r";   // press this key (page must have focus) to switch the bond display
+  const DELOC_KEY = "r";   // press this key (page must have focus) to cycle the bond display
 
   let viewer;
   let picked = [];
-  let delocalized = false;
+  let state = 0;
   // label text size in px: larger on phones / touch screens
   const LABEL_FONT = (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 600) ? 24 : 16;
 
@@ -168,7 +189,7 @@ M  END
 
   // Dashed half-bonds beside the single sticks of delocalized bonds
   function drawBondExtras() {
-    if (!delocalized || !DELOCALIZED.length) return;
+    if (state !== DELOC_STATE || !DELOCALIZED.length) return;
     const atoms = viewer.selectedAtoms({});
     DELOCALIZED.forEach(function (t) {
       const A = atoms[t[0]], B = atoms[t[1]], R = atoms[t[2]];
@@ -280,7 +301,7 @@ M  END
     viewer.removeAllModels();
     viewer.removeAllShapes();
     viewer.removeAllLabels();
-    viewer.addModel(delocalized && SDF_DELOCALIZED ? SDF_DELOCALIZED : SDF_STRUCTURE, "sdf");
+    viewer.addModel(SDF_STATES[state], "sdf");
     applyStyles();
     viewer.setClickable({}, true, onAtomClick);
     picked = [];
@@ -297,9 +318,9 @@ M  END
     document.getElementById("clearBtn").addEventListener("click", clearMeasurement);
 
     window.addEventListener("keydown", function (e) {
-      if (e.ctrlKey || e.metaKey || e.altKey || !DELOCALIZED.length) return;
+      if (e.ctrlKey || e.metaKey || e.altKey || SDF_STATES.length < 2) return;
       if (e.key && e.key.toLowerCase() === DELOC_KEY) {
-        delocalized = !delocalized;
+        state = (state + 1) % SDF_STATES.length;
         loadModel();
       }
     });
