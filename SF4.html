@@ -139,7 +139,7 @@ Cl    0.3757    0.5433   -1.9407`;
     const L = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1;
     const ux = -dx / L, uy = -dy / L, uz = -dz / L;
     // two overlapping spheres give a lobe that is narrow near the nucleus and wider away from it
-    [[0.50, 1.55], [1.20, 0.95]].forEach(function (s) {
+    [[0.50, 0.55], [1.20, 0.95]].forEach(function (s) {
       viewer.addSphere({
         center: { x: c.x + ux * s[0], y: c.y + uy * s[0], z: c.z + uz * s[0] },
         radius: s[1],
