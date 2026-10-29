@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sulfur tetrachloride (SCl4)</title>
+<title>Sulfur tetrafluoride (SF4)</title>
 <script src="https://cdn.jsdelivr.net/npm/3dmol/build/3Dmol-min.js"></script>
 <style>
   :root {
@@ -77,18 +77,18 @@
     <span id="readout" class="hint">Click two atoms for a bond length, or three atoms for an angle (the second atom you click is the vertex).</span>
     <button id="clearBtn">Clear</button>
   </div>
-  <div class="caption">Sulfur tetrachloride (SCl₄) — drag to rotate, scroll to zoom</div>
+  <div class="caption">Sulfur tetrafluoride (SF₄) — drag to rotate, scroll to zoom</div>
 </div>
 
 <script>
-  // Illustrative seesaw geometry (not experimental).
+  // Seesaw (C2v): S-F axial 164.3 pm, equatorial 154.5 pm, F(ax)-S-F(ax) 173.1 deg, F(eq)-S-F(eq) 101.6 deg.
   const xyz = `5
-Sulfur tetrachloride
+Sulfur tetrafluoride
 S     0.0000    0.0000    0.0000
-Cl    0.4791    2.0167    0.5710
-Cl   -0.2550   -2.0167   -0.7004
-Cl    1.8685   -0.5433    0.6450
-Cl    0.3757    0.5433   -1.9407`;
+F     0.3661    1.5411    0.4363
+F    -0.1948   -1.5411   -0.5352
+F     1.4082   -0.4095    0.4861
+F     0.2831    0.4095   -1.4626`;
 
   let viewer;
   let picked = [];
@@ -101,9 +101,9 @@ Cl    0.3757    0.5433   -1.9407`;
       stick: { radius: 0.08, colorscheme: "Jmol" },
       sphere: { scale: 0.40, colorscheme: "Jmol" }
     });
-    viewer.setStyle({ elem: "Cl" }, {
+    viewer.setStyle({ elem: "F" }, {
       stick: { radius: 0.08, colorscheme: "Jmol" },
-      sphere: { scale: 0.55, colorscheme: "Jmol" }
+      sphere: { scale: 0.40, colorscheme: "Jmol" }
     });
   }
 
@@ -122,7 +122,7 @@ Cl    0.3757    0.5433   -1.9407`;
   function dot(u, v) { return u.x * v.x + u.y * v.y + u.z * v.z; }
   function norm(u) { return Math.sqrt(dot(u, u)); }
 
-  const HALO_SCALE = { S: 0.40, Cl: 0.55 };  // keep in sync with applyStyles
+  const HALO_SCALE = { S: 0.40, F: 0.40 };  // keep in sync with applyStyles
   const HINT = "Click two atoms for a bond length, or three atoms for an angle (the second atom you click is the vertex).";
 
   // Optional extra display on the central atom, pointing opposite the sum of the bond vectors
